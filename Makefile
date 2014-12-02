@@ -9,7 +9,7 @@ test: compile
 	erl -mnesia dir '$(mnesia_db)' -sname mnesia_node -pa ebin/ \
 		-s eunit test create_tables -s init stop
 
-compile: compile
+compile:
 	erlc -o ebin/ src/create_tables.erl
 
 clean:

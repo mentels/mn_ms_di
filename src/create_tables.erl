@@ -5,6 +5,7 @@
          insert_project/2]).
 
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
 -record(user, {id,
                name}).
@@ -58,7 +59,8 @@ tables_test_() ->
       fun test3/0,
       fun test4/0,
       fun test5/0,
-      fun test6/0]}.
+      fun test6/0,
+      fun test7/0]}.
 
 setup() ->
     mnesia:start(),
@@ -110,4 +112,28 @@ test6() ->
     MatchSpec = [{MatchHead, _Guard = [], _Result = ['$_']}],
     ?assertMatch([#contributor{user_id = 2, title = szymon_girlfriend}],
                  mnesia:dirty_select(contributor, MatchSpec)).
+
+test7() ->
+    Fun = fun() ->
+                  Table = mnesia:table(contributor),
+                  [UserId] = mnesia:dirty_select(
+                               user,
+                               [{#user{name = szymon, id = '$1'}, [], ['$1']}]),
+                  QueryHandle = qlc:q([P#contributor.title
+                                       || P <- Table,
+                                          P#contributor.user_id =:= UserId]),
+                  qlc:eval(QueryHandle)
+          end,
+    ?assertMatch({atomic, [alice_boyfriend, mnesia_freak]},
+                 mnesia:transaction(Fun)).
+
+
+
+
+
+
+
+
+
+
 
